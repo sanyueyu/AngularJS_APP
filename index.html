@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html ng-app = "myApp">
+<head>
+    <title></title>
+    <script src="angular.js"></script>
+    <style type="text/css">
+        .title-disabled {
+            color: #fff000;
+        }
+        .selected {
+            background-color: #000055;
+        }
+    </style>
+</head>
+<body ng-controller="CartController">
+<h1 ng-show="title.show" ng-class='{"title-disabled": isDisabled}'>Your Order</h1>
+
+<div ng-repeat='item in items' ng-click="changeColor($index)" ng-class="{selected: isSelected == $index}">
+    <span>{{item.title | titleCase}}</span>
+    <input ng-change="compute($index)" ng-model="item.quantity">
+    <span>{{item.price | currency}}</span>
+    <span>{{item.sum | currency}}</span>
+    <button ng-click="remove($index)">Rmove</button>
+</div>
+<div>Total: {{ bill.total | currency }}</div>
+<div>Discount: {{ bill.discount | currency}}</div>
+<div>SubTotal: {{ bill.subTotal | currency }}</div>
+<button ng-click="toggle()">toggle</button>
+<button ng-click="stun()">stun</button>
+
+
+<script>
+     var myAppModule = angular.module("myApp", []);
+
+     myAppModule.factory("Items", function() {
+         var items = {};
+         items.query = function() {
+             return [
+                 {
+                     title: 'paint pots', quantity: 8, price: 3.95, sum: 0
+                 }
+                 ,
+                 {
+                     title: 'paint pots', quantity: 17, price: 12.9, sum: 0
+                 }
+                 ,
+                 {
+                     title: 'patine', quantity: 5, price: 4, sum: 0
+                 }
+             ];
+         };
+         return items;
+     });
+     myAppModule.filter('titleCase', function() {
+         var titleCaseFilter = function(input) {
+             var words = input.split(' ');
+             for(var i = 0, len = words.length; i < len; i++) {
+                 words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
+             }
+             return words.join(' ');
+         };
+         return titleCaseFilter;
+     });
+     myAppModule.controller("CartController", function($scope, Items) {
+         $scope.isDisabled = false;
+         $scope.title = {};
+         $scope.title.show = true;
+         $scope.title.disabled = true;
+         $scope.bill = {};
+         $scope.items = Items.query();
+         $scope.changeColor = function(index) {
+            $scope.isSelected = index;
+         };
+         $scope.remove = function (index) {
+             $scope.items.splice(index, 1);
+         };
+         $scope.compute = function(index) {
+             $scope.items[index].sum = $scope.items[index].quantity * $scope.items[index].price;
+         };
+         $scope.toggle = function() {
+              $scope.title.show = !$scope.title.show;
+         };
+         $scope.stun = function() {
+             $scope.isDisabled = true;
+         };
+
+         function calculate() {
+             var total = 0;
+             for(var i = 0, len = $scope.items.length; i < len; i++) {
+                 total += $scope.items[i].price * $scope.items[i].quantity;
+             }
+             $scope.bill.total = total;
+             $scope.bill.discount = total > 100 ? 10 : 0;
+             $scope.bill.subTotal = total - $scope.bill.discount;
+         }
+         $scope.$watch("items", calculate, true);
+     });
+
+</script>
+</body>
+</html>
